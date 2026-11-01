@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FPV Sim Servers</title>
+<meta name="description" content="Run your own FPV Sim multiplayer server on Windows or Linux: download, agree to the EULA, set your name, start, share a tunnel address." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0b0f14; --panel: #121922; --panel2: #18212c; --line: rgba(255, 255, 255, 0.1);
+    --text: #e8eef5; --muted: #8a99aa; --accent: #ff6a1a; --good: #3ddc84;
+    --font: 'Rajdhani', system-ui, sans-serif; --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  :root[data-theme='light'] { --bg: #f4f6f9; --panel: #ffffff; --panel2: #eef2f6; --line: rgba(0, 0, 0, 0.1); --text: #16202b; --muted: #5b6876; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 18px/1.55 var(--font); }
+  a { color: var(--accent); }
+  code, pre, kbd { font-family: var(--mono); font-size: 0.82em; }
+  code { background: var(--panel2); padding: 2px 6px; border-radius: 6px; }
+  pre { background: var(--panel2); padding: 12px 14px; border-radius: 10px; overflow-x: auto; border: 1px solid var(--line); }
+  header.top { position: sticky; top: 0; z-index: 5; display: flex; gap: 22px; align-items: center; padding: 12px 24px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .logo { font-weight: 700; font-size: 24px; letter-spacing: 0.04em; }
+  .logo span { color: var(--accent); }
+  header.top nav { display: flex; gap: 18px; flex-wrap: wrap; }
+  header.top nav a { color: var(--muted); text-decoration: none; font-weight: 600; }
+  header.top nav a:hover { color: var(--text); }
+  main { max-width: 1060px; margin: 0 auto; padding: 0 24px 80px; }
+  .hero { padding: 64px 0 36px; }
+  .hero h1 { font-size: clamp(38px, 6vw, 64px); line-height: 1.02; margin: 0 0 14px; }
+  .hero h1 em { color: var(--accent); font-style: normal; }
+  .hero p { color: var(--muted); font-size: 21px; max-width: 700px; margin: 0 0 26px; }
+  .btns { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 22px; border-radius: 12px; font-weight: 700; font-size: 19px; text-decoration: none; border: 1px solid var(--line); background: var(--panel); color: var(--text); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #140a03; }
+  .btn small { font-weight: 500; opacity: 0.75; font-size: 14px; }
+  section { padding: 34px 0 6px; }
+  section h2 { font-size: 32px; margin: 0 0 6px; }
+  section > p.lead { color: var(--muted); margin: 0 0 20px; }
+  .steps { counter-reset: step; display: grid; gap: 14px; }
+  .step { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 16px 66px; }
+  .step::before { counter-increment: step; content: counter(step); position: absolute; left: 18px; top: 16px; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #140a03; font-weight: 700; display: grid; place-items: center; }
+  .step h3 { margin: 0 0 4px; font-size: 21px; }
+  .step p { margin: 6px 0; }
+  .tabs { display: flex; gap: 6px; margin: 8px 0 4px; }
+  .tabs button { font: inherit; font-weight: 600; padding: 4px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); color: var(--muted); cursor: pointer; }
+  .tabs button.on { color: var(--text); border-color: var(--accent); }
+  [data-os] { display: none; }
+  body[data-show='win'] [data-os='win'], body[data-show='linux'] [data-os='linux'] { display: block; }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border-radius: 12px; overflow: hidden; border: 1px solid var(--line); }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; background: var(--panel2); }
+  td code { white-space: nowrap; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .map { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .map img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: var(--panel2); }
+  .map div { padding: 8px 12px; }
+  .map b { display: block; }
+  .map code { font-size: 13px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .card h3 { margin: 0 0 6px; }
+  .flow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 10px 0; }
+  .flow span { background: var(--panel); border: 1px solid var(--line); padding: 8px 14px; border-radius: 10px; font-weight: 600; }
+  .flow i { color: var(--muted); font-style: normal; }
+  details { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin-bottom: 10px; }
+  summary { cursor: pointer; font-weight: 700; }
+  footer { color: var(--muted); text-align: center; padding: 30px; border-top: 1px solid var(--line); }
+  @media (max-width: 640px) {
+    header.top { flex-wrap: wrap; gap: 8px 16px; padding: 10px 16px; }
+    main { padding: 0 16px 60px; }
+    .step { padding-left: 58px; }
+    table { font-size: 15px; }
+    td code { white-space: normal; }
+  }
+</style>
+</head>
+<body data-show="win">
+<header class="top">
+  <div class="logo">FPV<span>SIM</span> Servers</div>
+  <nav>
+    <a href="#start">Get started</a>
+    <a href="#settings">Settings</a>
+    <a href="#commands">Commands</a>
+    <a href="#tunnel">Tunnel</a>
+    <a href="#maps">Maps</a>
+    <a href="#faq">FAQ</a>
+  </nav>
+</header>
+<main>
+  <div class="hero">
+    <h1>Fly <em>together.</em><br />Run your own FPV Sim server.</h1>
+    <p>One small download for Windows or Linux. Pick a port, share the address (or a free playit.gg tunnel), and your friends join from the game's <b>Multiplayer</b> tab. You see who is in, press <b>Start</b>, everyone votes for a map, and you fly together.</p>
+    <div class="btns">
+      <a class="btn primary" href="install.bat" download>⬇ Windows installer <small>install.bat</small></a>
+      <a class="btn" href="install.sh" download>⬇ Linux installer <small>install.sh</small></a>
+      <a class="btn" href="https://github.com/guyka2212/flysim-servers">Source on GitHub</a>
+    </div>
+  </div>
+
+  <section id="start">
+    <h2>Get started</h2>
+    <p class="lead">About five minutes. The installer downloads the server, and a private copy of Node.js if your computer doesn't have it.</p>
+    <div class="tabs"><button data-pick="win" class="on">Windows</button><button data-pick="linux">Linux</button></div>
+    <div class="steps">
+      <div class="step">
+        <h3>Download and run the installer</h3>
+        <div data-os="win"><p>Put <a href="install.bat" download>install.bat</a> in an empty folder (e.g. <code>Documents\FPV Server</code>) and double-click it. It makes a <code>FPV-Sim-Server</code> folder with everything inside. (Windows may say it protected your PC: <b>More info → Run anyway</b>.)</p></div>
+        <div data-os="linux"><p>In the folder where you want the server:</p><pre>curl -fsSL https://raw.githubusercontent.com/guyka2212/flysim-servers/main/install.sh | sh</pre><p>No curl? <code>wget -qO- …/install.sh | sh</code>. It makes a <code>FPV-Sim-Server</code> folder.</p></div>
+      </div>
+      <div class="step">
+        <h3>Start it once</h3>
+        <div data-os="win"><p>Open <code>FPV-Sim-Server</code> and double-click <code>start.bat</code>. The first time it creates <code>eula.txt</code> and <code>server.settings</code> and stops.</p></div>
+        <div data-os="linux"><pre>cd FPV-Sim-Server
+./start.sh</pre><p>The first time it creates <code>eula.txt</code> and <code>server.settings</code> and stops.</p></div>
+      </div>
+      <div class="step">
+        <h3>Agree to the EULA</h3>
+        <p>Open <code>eula.txt</code>, read it, and change <code>eula=false</code> to <code>eula=true</code>. Save.</p>
+      </div>
+      <div class="step">
+        <h3>Make yourself the owner</h3>
+        <p>In <code>server.settings</code> set <code>Owner-user-name=</code> to your user name in the game (the one you chose in the Multiplayer tab). The owner gets the <b>Start</b> button and can run commands from the game. Change any other <a href="#settings">setting</a> you like.</p>
+      </div>
+      <div class="step">
+        <h3>Start the server and choose the port</h3>
+        <div data-os="win"><p>Double-click <code>start.bat</code>. It asks <b>Port to run on [25580]</b>: press Enter, or type another port. Want the admin window? Run <code>start.bat gui</code> from a terminal (or make a shortcut with <code>gui</code> on the end).</p></div>
+        <div data-os="linux"><p><code>./start.sh</code> asks <b>Port to run on [25580]</b>: press Enter, or type another. <code>./start.sh 25580</code> skips the question. On a desktop, <code>./start.sh gui</code> also opens the admin window. On a headless server, keep it running in <code>screen</code> / <code>tmux</code>.</p></div>
+        <p>Windows Firewall may ask about Node.js: allow it.</p>
+      </div>
+      <div class="step">
+        <h3>Share the address</h3>
+        <p>Same Wi-Fi: your local IP and port, like <code>192.168.1.20:25580</code>. Friends anywhere: make a free <a href="#tunnel">playit.gg tunnel</a> and share its address, like <code>name.gl.joinmc.link:12345</code>.</p>
+      </div>
+      <div class="step">
+        <h3>Join from the game</h3>
+        <p>FPV Sim → <b>Multiplayer</b> → pick a user name the first time → paste the address → <b>Add server</b> → <b>Join</b>. The server list remembers it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How a round works</h2>
+    <div class="flow"><span>Join</span><i>→</i><span>Lobby: see who is in</span><i>→</i><span>Owner presses Start</span><i>→</i><span>Everyone votes for a map</span><i>→</i><span>Most votes wins (a tie: random)</span><i>→</i><span>Fly together</span></div>
+    <p>The owner can press <b>End round</b> (or type <code>lobby</code>) to go back for a new vote. In the lobby there is a chat, and the owner has a console for server commands. Recordings made on a server include the other pilots, and the replay editor can show or hide their names.</p>
+  </section>
+
+  <section id="settings">
+    <h2>server.settings</h2>
+    <p class="lead"><code>key=value</code>, one per line. <code>true</code>/<code>false</code> switch things on and off; numbers are numbers. Save and type <code>reload</code> in the server window, or restart.</p>
+    <table>
+      <tr><th>Setting</th><th>Default</th><th>What it does</th></tr>
+      <tr><td><code>server-name</code></td><td>My FPV Sim server</td><td>Name in the server list and lobby</td></tr>
+      <tr><td><code>motd</code></td><td>Welcome!…</td><td>Message in the lobby</td></tr>
+      <tr><td><code>port</code></td><td>25580</td><td>TCP port (also asked at start)</td></tr>
+      <tr><td><code>Owner-user-name</code></td><td>(empty)</td><td>Your game user name: Start button and commands from the game</td></tr>
+      <tr><td><code>max-drones</code></td><td>16</td><td>Most players at once</td></tr>
+      <tr><td><code>drone-collision</code></td><td>true</td><td>Drones bump into each other (and crash when hit hard)</td></tr>
+      <tr><td><code>drone-show</code></td><td>true</td><td>Players see each other. <code>false</code>: everyone flies alone on the same map</td></tr>
+      <tr><td><code>show-names</code></td><td>true</td><td>Names float above the drones</td></tr>
+      <tr><td><code>voting-time</code></td><td>30</td><td>Seconds the map vote lasts (ends early when everyone voted)</td></tr>
+      <tr><td><code>min-players</code></td><td>1</td><td>Players needed before the owner can start</td></tr>
+      <tr><td><code>allow-teleport</code></td><td>true</td><td>Players may use the map (M) to teleport</td></tr>
+      <tr><td><code>allow-recording</code></td><td>true</td><td>Players may record (V)</td></tr>
+      <tr><td><code>maps</code></td><td>all</td><td>Maps in the vote: <code>all</code> or ids, e.g. <code>paris,lake,stadium</code></td></tr>
+      <tr><td><code>password</code></td><td>(empty)</td><td>Players must type it to join</td></tr>
+      <tr><td><code>whitelist</code></td><td>false</td><td>Only names in <code>whitelist.txt</code> (one per line) may join</td></tr>
+      <tr><td><code>state-rate</code></td><td>20</td><td>Position updates per second (10 to 30)</td></tr>
+    </table>
+  </section>
+
+  <section id="commands">
+    <h2>Server commands</h2>
+    <p class="lead">Type them in the server window, the admin window (<code>gui</code>), or the owner console in the game's lobby.</p>
+    <table>
+      <tr><th>Command</th><th>What it does</th></tr>
+      <tr><td><code>list</code></td><td>Who is online: name, IP, drone, ping</td></tr>
+      <tr><td><code>kick &lt;name&gt; [reason]</code></td><td>Remove a player (they can come back)</td></tr>
+      <tr><td><code>ban &lt;name&gt; [reason]</code></td><td>Remove and keep out, by name (and IP when they connect directly)</td></tr>
+      <tr><td><code>unban &lt;name&gt;</code> · <code>banlist</code></td><td>Let back in · show bans</td></tr>
+      <tr><td><code>tp &lt;name&gt; &lt;target&gt;</code> · <code>tpall &lt;target&gt;</code></td><td>Teleport a player (or everyone) to a player</td></tr>
+      <tr><td><code>say &lt;text&gt;</code></td><td>Message everyone</td></tr>
+      <tr><td><code>vote</code> · <code>map &lt;id&gt;</code> · <code>maps</code> · <code>lobby</code></td><td>Start the vote · force a map · list maps · end the round</td></tr>
+      <tr><td><code>owner &lt;name&gt;</code></td><td>Set the owner (saved)</td></tr>
+      <tr><td><code>set &lt;key&gt; &lt;value&gt;</code> · <code>settings</code> · <code>reload</code></td><td>Change and save a setting · show them · reread the file</td></tr>
+      <tr><td><code>help</code> · <code>stop</code></td><td>All commands · shut down</td></tr>
+    </table>
+  </section>
+
+  <section id="tunnel">
+    <h2>Friends outside your network: a tunnel</h2>
+    <p class="lead">Like a Minecraft server: a free tunnel gives your server a public address, no router settings. The server is plain TCP, so any TCP tunnel works.</p>
+    <div class="cards">
+      <div class="card"><h3>playit.gg (recommended)</h3><p>Sign up, install the agent, add a <b>TCP</b> tunnel to <code>127.0.0.1</code> and your port, share the address it gives you (with the number after the colon).</p><p><a href="https://github.com/guyka2212/flysim-servers/blob/main/server/Tunnel.md">Step-by-step guide (Tunnel.md) →</a></p></div>
+      <div class="card"><h3>Other tunnels</h3><p>ngrok (<code>ngrok tcp 25580</code>), Cloudflare, zrok, localtonet…, or a private network like Tailscale, ZeroTier or Radmin VPN. Or forward TCP port 25580 on your router.</p></div>
+      <div class="card"><h3>Check it works</h3><p>Open <code>http://&lt;address&gt;</code> in any browser. It should say <b>FPV Sim server is running</b>. The game's server list also shows Online / Offline and the player count.</p></div>
+    </div>
+  </section>
+
+  <section id="maps">
+    <h2>Maps in the vote</h2>
+    <p class="lead">The maps are built into the game; the server only needs their ids. Limit the vote with <code>maps=</code> in server.settings.</p>
+    <div class="grid" id="maplist"></div>
+  </section>
+
+  <section id="faq">
+    <h2>FAQ</h2>
+    <details><summary>What does it need to run?</summary><p>Windows 10/11 or any 64-bit Linux (x64 or ARM, so a Raspberry Pi 4/5 works too), with Node.js 18 or newer. The installer fetches Node.js into the server folder if it's missing. Uses very little CPU; about 1 KB/s for each other pilot a player can see.</p></details>
+    <details><summary>Does it need a desktop?</summary><p>No. Without <code>gui</code> it is a plain terminal program, fine on a VPS. With <code>gui</code> it also opens an admin page in your browser, only reachable from that computer.</p></details>
+    <details><summary>How do I update?</summary><p>Run the installer again in the same place. Your <code>server.settings</code>, <code>eula.txt</code>, bans and whitelist are kept.</p></details>
+    <details><summary>"Different game version"</summary><p>The game and server must speak the same version. Update both: the game, and the server by running the installer again.</p></details>
+    <details><summary>Players behind a tunnel all show 127.0.0.1</summary><p>That's how TCP tunnels work: everyone arrives through the tunnel agent. Bans still work, by name.</p></details>
+    <details><summary>Can I run it as a service on Linux?</summary><p>Yes. A systemd unit with <code>ExecStart=/path/FPV-Sim-Server/start.sh 25580</code> and <code>WorkingDirectory=/path/FPV-Sim-Server</code>. Make sure the EULA is accepted first.</p></details>
+  </section>
+</main>
+<footer>FPV Sim Servers · <a href="https://github.com/guyka2212/flysim-servers">GitHub</a></footer>
+<script>
+  const pick = (os) => {
+    document.body.dataset.show = os;
+    document.querySelectorAll('[data-pick]').forEach((b) => b.classList.toggle('on', b.dataset.pick === os));
+  };
+  document.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', () => pick(b.dataset.pick)));
+  if (/Linux|X11/.test(navigator.userAgent) && !/Android/.test(navigator.userAgent)) pick('linux');
+  fetch('server/maps.json')
+    .then((r) => r.json())
+    .then((maps) => {
+      document.getElementById('maplist').innerHTML = maps
+        .map((m) => `<div class="map"><img src="img/${m.id}.jpg" alt="${m.name}" loading="lazy"><div><b>${m.name}</b><code>${m.id}</code></div></div>`)
+        .join('');
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "bando",
+    "name": "The Bando",
+    "description": "Abandoned three-storey concrete shell, skate park, stacked containers and a water tower. Gaps, dives and power loops."
+  },
+  {
+    "id": "racetrack",
+    "name": "Race Field",
+    "description": "MultiGP-style track: 12 gates with a dive gate, a ladder and hurdles. Timed laps, best lap saved."
+  },
+  {
+    "id": "house",
+    "name": "The House",
+    "description": "Furnished house at real scale: living room, kitchen, hallway, bedroom, office. Six hoops make a whoop race line."
+  },
+  {
+    "id": "town",
+    "name": "Old Town",
+    "description": "Streets, a church with an open bell tower, a park with a pond and parked cars. Smooth cinematic lines."
+  },
+  {
+    "id": "mountains",
+    "name": "Alpine Valley",
+    "description": "1.8 km valley with a lake, pine forest, rock arches and snowy ridges. Long-range cruising and mountain surfing."
+  },
+  {
+    "id": "mall",
+    "name": "Skylight Mall",
+    "description": "Three-storey mall open to the sky: a 112 m atrium with sky bridges and palm courts, and a round Dome Court whose roof is a giant open lattice ball you can fly straight through."
+  },
+  {
+    "id": "f1",
+    "name": "Grand Prix Circuit",
+    "description": "2.1 km road course with F1 cars racing laps. Chase them down the straight, through the esses and under the bridge."
+  },
+  {
+    "id": "oval",
+    "name": "Speedway",
+    "description": "1.7 km banked oval with a pack of stock cars drafting at full throttle. Hang off the bumper into turn one."
+  },
+  {
+    "id": "lake",
+    "name": "Crystal Lake",
+    "description": "Summer lake in forested hills: an island lighthouse, a long pier, a boathouse open at both ends, sailboats, a diving tower and a stone arch bridge. Skim the water and thread the gaps."
+  },
+  {
+    "id": "hollywood",
+    "name": "Hollywood Hills",
+    "description": "Palm-lined boulevard with a walk of stars, a movie palace you can fly into, a round tower and sound stages open at both ends. Up in the dry hills: the giant sign, cliff houses with pools and the observatory."
+  },
+  {
+    "id": "paris",
+    "name": "Paris",
+    "description": "A 200 m iron lattice tower to dive between the legs of and weave through, the Seine with arch bridges to fly under, the triumphal arch on its star roundabout, Haussmann boulevards and a glass pyramid."
+  },
+  {
+    "id": "stadium",
+    "name": "Stadium",
+    "description": "Empty football stadium: dive the stands, thread the slot between the two tiers and out under the upper deck, and through the gap under the ring roof. Giant screens and floodlights."
+  }
+]

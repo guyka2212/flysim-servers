@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FPV Sim server admin</title>
+<style>
+  :root { --bg: #0b0f14; --panel: #131a23; --line: #233042; --text: #e8edf3; --muted: #8a99ab; --accent: #ff6a1a; --good: #3ddc84; --bad: #ff4d4d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, sans-serif; }
+  header { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+  header h1 { margin: 0; font-size: 20px; }
+  header .tag { color: var(--muted); }
+  main { display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; padding: 16px 20px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  h2 { margin: 0 0 10px; font-size: 16px; }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; }
+  th { color: var(--muted); font-weight: 500; }
+  button, select, input { font: inherit; color: var(--text); background: #1b2531; border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.go { background: var(--accent); border-color: var(--accent); color: #111; font-weight: 600; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  #log { height: 300px; overflow-y: auto; font: 13px/1.4 ui-monospace, monospace; background: #080b0f; border-radius: 8px; padding: 8px; white-space: pre-wrap; }
+  #log .warn { color: #ffd33d; } #log .error { color: var(--bad); }
+  .set { display: grid; grid-template-columns: 170px 1fr; gap: 6px 10px; align-items: center; }
+  .set small { grid-column: 2; color: var(--muted); margin-top: -4px; }
+  .muted { color: var(--muted); }
+  .owner { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="name">FPV Sim server</h1>
+  <span class="tag" id="status"></span>
+  <span style="flex:1"></span>
+  <button id="vote" class="go">Start map vote</button>
+  <button id="lobby">Back to lobby</button>
+  <button id="stop">Stop server</button>
+</header>
+<main>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <section>
+      <h2>Players <span class="muted" id="count"></span></h2>
+      <table><thead><tr><th>Name</th><th>Drone</th><th>Ping</th><th>IP</th><th></th></tr></thead><tbody id="players"></tbody></table>
+    </section>
+    <section>
+      <h2>Round</h2>
+      <div class="row"><span id="round" class="muted"></span></div>
+      <div class="row" style="margin-top:8px"><select id="mapsel"></select><button id="setmap">Play this map now</button></div>
+    </section>
+    <section>
+      <h2>Console</h2>
+      <div id="log"></div>
+      <form id="cmdform" class="row" style="margin-top:8px"><input id="cmd" placeholder="Command, e.g. say hello, tp alice bob, help" style="flex:1" /><button class="go">Run</button></form>
+    </section>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <section>
+      <h2>Settings <span class="muted">(saved to server.settings as you change them)</span></h2>
+      <div class="set" id="settings"></div>
+    </section>
+    <section>
+      <h2>Banned</h2>
+      <table><tbody id="bans"></tbody></table>
+    </section>
+  </div>
+</main>
+<script>
+  const k = new URLSearchParams(location.search).get('k');
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  async function cmd(c) {
+    const r = await fetch('/cmd?k=' + k, { method: 'POST', body: c });
+    return (await r.json()).out;
+  }
+  function addLog(line, kind) {
+    const el = $('log');
+    const d = document.createElement('div');
+    d.className = kind || '';
+    d.textContent = line;
+    el.appendChild(d);
+    if (el.childElementCount > 500) el.firstChild.remove();
+    el.scrollTop = el.scrollHeight;
+  }
+  let lastSettings = '';
+  function render(s) {
+    $('name').textContent = s.name;
+    document.title = s.name + ' - admin';
+    $('status').textContent = `port ${s.port} · ${s.phase}${s.map ? ' · ' + s.map : ''}`;
+    $('count').textContent = `(${s.players.length})`;
+    const others = s.players.map((p) => p.name);
+    $('players').innerHTML = s.players.length
+      ? s.players.map((p) => `<tr><td>${p.owner ? '<span class="owner">★ </span>' : ''}${esc(p.name)}</td><td>${esc(p.drone)}</td><td>${p.ping} ms</td><td class="muted">${esc(p.ip)}</td>
+        <td class="row"><select data-tp="${esc(p.name)}"><option value="">tp to…</option>${others.filter((o) => o !== p.name).map((o) => `<option>${esc(o)}</option>`).join('')}</select>
+        <button data-c="kick ${esc(p.name)}">Kick</button><button data-c="ban ${esc(p.name)}">Ban</button><button data-c="owner ${esc(p.name)}">Make owner</button></td></tr>`).join('')
+      : '<tr><td class="muted" colspan="5">Nobody yet.</td></tr>';
+    const votes = Object.entries(s.votes).map(([m, n]) => `${m}: ${n}`).join(', ');
+    $('round').textContent = s.phase === 'lobby' ? 'Lobby: waiting for the owner to start the vote.' : s.phase === 'voting' ? `Voting, ${Math.ceil(s.left / 1000)} s left. ${votes || 'No votes yet.'}` : `Playing on ${s.map}.`;
+    if (!$('mapsel').options.length) $('mapsel').innerHTML = s.maps.map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join('');
+    $('bans').innerHTML = s.bans.length ? s.bans.map((b) => `<tr><td>${esc(b.name)}</td><td class="muted">${esc(b.reason)}</td><td><button data-c="unban ${esc(b.name)}">Unban</button></td></tr>`).join('') : '<tr><td class="muted">Nobody is banned.</td></tr>';
+    const key = JSON.stringify(s.settings);
+    if (key !== lastSettings && !$('settings').contains(document.activeElement)) {
+      lastSettings = key;
+      $('settings').innerHTML = s.settings
+        .map((x) => {
+          const input = x.type === 'boolean'
+            ? `<select data-set="${x.key}"><option ${x.value ? 'selected' : ''}>true</option><option ${!x.value ? 'selected' : ''}>false</option></select>`
+            : `<input data-set="${x.key}" value="${esc(x.value)}" ${x.type === 'number' ? 'type="number"' : ''} ${x.key === 'password' ? 'type="password"' : ''} />`;
+          return `<label>${x.key}</label>${input}<small>${esc(x.help)}</small>`;
+        })
+        .join('');
+    }
+  }
+  document.addEventListener('click', async (e) => {
+    const c = e.target.dataset?.c;
+    if (!c) return;
+    if (c.startsWith('ban ') && !confirm(c + '?')) return;
+    const out = await cmd(c);
+    if (out) addLog(out);
+  });
+  document.addEventListener('change', async (e) => {
+    const t = e.target;
+    if (t.dataset.tp && t.value) {
+      addLog(await cmd(`tp ${t.dataset.tp} ${t.value}`));
+      t.value = '';
+    }
+    if (t.dataset.set) addLog(await cmd(`set ${t.dataset.set} ${t.value}`));
+  });
+  $('vote').onclick = async () => addLog(await cmd('vote'));
+  $('lobby').onclick = async () => addLog(await cmd('lobby'));
+  $('setmap').onclick = async () => addLog(await cmd('map ' + $('mapsel').value));
+  $('stop').onclick = async () => confirm('Stop the server? Everyone will be disconnected.') && addLog(await cmd('stop'));
+  $('cmdform').onsubmit = async (e) => {
+    e.preventDefault();
+    const c = $('cmd').value.trim();
+    if (!c) return;
+    addLog('> ' + c);
+    $('cmd').value = '';
+    const out = await cmd(c);
+    if (out) out.split('\n').forEach((l) => addLog(l));
+  };
+  const es = new EventSource('/events?k=' + k);
+  es.addEventListener('state', (e) => render(JSON.parse(e.data)));
+  es.addEventListener('log', (e) => {
+    const { line, kind } = JSON.parse(e.data);
+    addLog(line, kind);
+  });
+  es.onerror = () => ($('status').textContent = 'server stopped / not reachable');
+</script>
+</body>
+</html>
