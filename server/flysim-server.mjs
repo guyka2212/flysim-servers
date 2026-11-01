@@ -15,7 +15,7 @@ import readline from 'node:readline';
 import { exec } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const PROTOCOL = 1;
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const SETTINGS_FILE = path.join(DIR, 'server.settings');
@@ -301,7 +301,7 @@ let stateTimer = null;
 const isOwner = (p) => !!settings['Owner-user-name'] && p.name.toLowerCase() === String(settings['Owner-user-name']).toLowerCase();
 
 function playerList() {
-  return [...players.values()].map((p) => ({ id: p.id, name: p.name, drone: p.drone, owner: isOwner(p), ping: p.ping }));
+  return [...players.values()].map((p) => ({ id: p.id, name: p.name, drone: p.drone, owner: isOwner(p), ping: p.ping, level: p.level }));
 }
 
 function broadcast(obj, except = null) {
@@ -400,6 +400,8 @@ function restartStateTimer() {
   stateTimer = setInterval(tickStates, 1000 / publicSettings().rate);
 }
 
+const clampLevel = (v) => Math.max(0, Math.min(50, Math.round(Number(v) || 0)));
+
 function findPlayer(name) {
   if (!name) return null;
   const n = name.toLowerCase();
@@ -431,7 +433,7 @@ function handleMessage(p, raw) {
   switch (m.t) {
     case 'state':
       if (phase !== 'playing' || !Array.isArray(m.p) || !Array.isArray(m.q)) return;
-      p.state = { p: m.p.slice(0, 3).map(Number), q: m.q.slice(0, 4).map(Number), w: Number(m.w) || 0, a: !!m.a, c: !!m.c, d: String(m.d || p.drone).slice(0, 24) };
+      p.state = { p: m.p.slice(0, 3).map(Number), q: m.q.slice(0, 4).map(Number), w: Number(m.w) || 0, a: !!m.a, c: !!m.c, d: String(m.d || p.drone).slice(0, 24), s: String(m.s || 'stock').slice(0, 24) };
       p.drone = p.state.d;
       break;
     case 'start':
@@ -451,6 +453,11 @@ function handleMessage(p, raw) {
       break;
     case 'drone':
       p.drone = String(m.d || '').slice(0, 24);
+      sendPlayers();
+      break;
+    case 'level':
+      // Pilot Level from the player's FPV Sim account (shown next to the name).
+      p.level = clampLevel(m.level);
       sendPlayers();
       break;
     case 'chat': {
@@ -489,7 +496,7 @@ function join(ws, ip, m) {
   if (players.size >= settings['max-drones']) return refuse(`The server is full (${settings['max-drones']}).`);
   if ([...players.values()].some((p) => p.name.toLowerCase() === name.toLowerCase())) return refuse('Someone with that name is already playing.');
 
-  const p = { id: nextId++, name, ip, ws, drone: String(m.drone || 'freestyle5').slice(0, 24), state: null, ping: 0, joined: Date.now() };
+  const p = { id: nextId++, name, ip, ws, drone: String(m.drone || 'freestyle5').slice(0, 24), level: clampLevel(m.level), state: null, ping: 0, joined: Date.now() };
   players.set(p.id, p);
   ws.onmessage = (raw) => handleMessage(p, raw);
   ws.onclose = () => {
@@ -592,7 +599,7 @@ function runCommand(line, by = 'console') {
       return HELP.map(([c, d]) => `  ${c.padEnd(22)} ${d}`).join('\n');
     case 'list': {
       if (!players.size) return 'Nobody is on the server.';
-      return [...players.values()].map((p) => `  ${p.name}${isOwner(p) ? ' (owner)' : ''}  ${p.ip}  ${p.drone}  ${p.ping} ms`).join('\n');
+      return [...players.values()].map((p) => `  ${p.name}${p.level ? ` [Lv ${p.level}]` : ''}${isOwner(p) ? ' (owner)' : ''}  ${p.ip}  ${p.drone}  ${p.ping} ms`).join('\n');
     }
     case 'kick': {
       const p = findPlayer(rest[0]);
@@ -737,7 +744,7 @@ function adminState() {
     map: currentMap,
     votes: voteCounts(),
     left: phase === 'voting' ? Math.max(0, voteEnds - Date.now()) : 0,
-    players: [...players.values()].map((p) => ({ name: p.name, ip: p.ip, drone: p.drone, ping: p.ping, owner: isOwner(p), since: p.joined })),
+    players: [...players.values()].map((p) => ({ name: p.name, level: p.level, ip: p.ip, drone: p.drone, ping: p.ping, owner: isOwner(p), since: p.joined })),
     settings: SETTINGS.map(([k, def, help]) => ({ key: k, value: settings[k], type: typeof def, help })),
     bans: Object.values(bans.names),
     maps: MAPS,

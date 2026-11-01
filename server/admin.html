@@ -93,7 +93,7 @@
     $('count').textContent = `(${s.players.length})`;
     const others = s.players.map((p) => p.name);
     $('players').innerHTML = s.players.length
-      ? s.players.map((p) => `<tr><td>${p.owner ? '<span class="owner">★ </span>' : ''}${esc(p.name)}</td><td>${esc(p.drone)}</td><td>${p.ping} ms</td><td class="muted">${esc(p.ip)}</td>
+      ? s.players.map((p) => `<tr><td>${p.owner ? '<span class="owner">★ </span>' : ''}${esc(p.name)}${p.level ? ` <span class="muted">Lv ${p.level}</span>` : ''}</td><td>${esc(p.drone)}</td><td>${p.ping} ms</td><td class="muted">${esc(p.ip)}</td>
         <td class="row"><select data-tp="${esc(p.name)}"><option value="">tp to…</option>${others.filter((o) => o !== p.name).map((o) => `<option>${esc(o)}</option>`).join('')}</select>
         <button data-c="kick ${esc(p.name)}">Kick</button><button data-c="ban ${esc(p.name)}">Ban</button><button data-c="owner ${esc(p.name)}">Make owner</button></td></tr>`).join('')
       : '<tr><td class="muted" colspan="5">Nobody yet.</td></tr>';
