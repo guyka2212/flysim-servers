@@ -488,7 +488,7 @@ function join(ws, ip, m) {
     log(`Refused ${name || '?'} (${ip}): ${reason}`, 'warn');
   };
   if (m.protocol !== PROTOCOL) return refuse(`Different game version (server ${VERSION}). Update the game or the server.`);
-  if (!/^[\w .\-]{2,20}$/u.test(name)) return refuse('Invalid user name (2-20 letters, numbers, space, . _ -).');
+  if (!/^[\w .|\-]{2,20}$/u.test(name)) return refuse('Invalid user name (2-20 letters, numbers, space, . _ - |).');
   if (bans.names[name.toLowerCase()]) return refuse(`You are banned: ${bans.names[name.toLowerCase()].reason || 'no reason given'}`);
   if (bans.ips[ip]) return refuse(`You are banned: ${bans.ips[ip].reason || 'no reason given'}`);
   if (settings.password && m.password !== settings.password) return refuse(m.password ? 'Wrong password.' : 'This server needs a password.');
