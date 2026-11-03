@@ -15,7 +15,7 @@ import readline from 'node:readline';
 import { exec } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const PROTOCOL = 1;
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const SETTINGS_FILE = path.join(DIR, 'server.settings');
@@ -62,6 +62,8 @@ const SETTINGS = [
   ['min-players', 1, 'Players needed before the owner can start.'],
   ['allow-teleport', true, 'true: players may use the map (M) to teleport.'],
   ['allow-recording', true, 'true: players may record the flight (V).'],
+  ['allow-plugins', true, 'true: players may use game plugins while on this server. false: their plugins are paused while they are here.'],
+  ['allowed-plugins', '', 'With allow-plugins=true: empty = any plugin, or plugin ids separated by commas (e.g. speed-hud,flight-stats) = only those.'],
   ['maps', 'all', 'Maps in the vote: all, or ids separated by commas (bando,racetrack,house,town,mountains,mall,f1,oval,lake,hollywood,paris,stadium).'],
   ['password', '', 'Leave empty for an open server; otherwise players must type it to join.'],
   ['whitelist', false, 'true: only names listed in whitelist.txt (one per line) may join.'],
@@ -116,6 +118,11 @@ function publicSettings() {
     names: settings['show-names'],
     teleport: settings['allow-teleport'],
     recording: settings['allow-recording'],
+    plugins: settings['allow-plugins'],
+    allowedPlugins: String(settings['allowed-plugins'] || '')
+      .split(',')
+      .map((x) => x.trim().toLowerCase())
+      .filter(Boolean),
     maxDrones: settings['max-drones'],
     rate: Math.max(5, Math.min(30, settings['state-rate'])),
   };

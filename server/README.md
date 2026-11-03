@@ -37,6 +37,8 @@ file and type `reload` in the server window (or restart).
 | `min-players` | 1 | Players needed before the owner can start |
 | `allow-teleport` | true | Players may use the map (M) to teleport |
 | `allow-recording` | true | Players may record (V) |
+| `allow-plugins` | true | Players may use game plugins here (false pauses them while they're on the server) |
+| `allowed-plugins` | (empty) | Empty = any plugin, or plugin ids separated by commas to allow only those |
 | `maps` | all | Maps in the vote: `all` or ids, e.g. `paris,lake,stadium` |
 | `password` | (empty) | Players must type it to join |
 | `whitelist` | false | Only names in whitelist.txt (one per line) may join |
